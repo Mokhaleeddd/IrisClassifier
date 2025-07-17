@@ -1,28 +1,25 @@
-from flask import Flask, request, jsonify
-import numpy as np
-import pickle
+import streamlit as st
+import requests
 
-# Load your trained model
-with open("model.pkl", "rb") as f:
-    model = pickle.load(f)
+st.title("🌸 Iris Flower Classifier")
+st.write("Enter the flower's features:")
 
-app = Flask(__name__)
+# Input fields
+sepal_length = st.number_input("Sepal length (cm)", value=5.1)
+sepal_width = st.number_input("Sepal width (cm)", value=3.5)
+petal_length = st.number_input("Petal length (cm)", value=1.4)
+petal_width = st.number_input("Petal width (cm)", value=0.2)
 
-@app.route("/", methods=["GET"])
-def home():
-    return "Welcome to the Iris prediction API!"
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    data = request.get_json()
-    features = np.array([[ 
-        data["sepal_length"],
-        data["sepal_width"],
-        data["petal_length"],
-        data["petal_width"]
-    ]])
-    prediction = model.predict(features)
-    return jsonify({"prediction": prediction[0]})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+# Predict button
+if st.button("Predict"):
+    features = [sepal_length, sepal_width, petal_length, petal_width]
+    try:
+        response = requests.post("http://127.0.0.1:5000/predict", json={"features": features})
+        if response.status_code == 200:
+            prediction = response.json()["prediction"]
+            target_names = ["Setosa", "Versicolor", "Virginica"]
+            st.success(f"Predicted Class: {target_names[prediction]}")
+        else:
+            st.error(f"Error: {response.status_code} - {response.text}")
+    except Exception as e:
+        st.error(f"⚠️ Request failed: {e}")

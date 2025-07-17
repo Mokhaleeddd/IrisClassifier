@@ -8,6 +8,8 @@ WORKDIR /app
 COPY requirements.txt .
 COPY app.py .
 COPY iris_model.pkl .
+COPY api.py .
+
 
 # Install dependencies
 RUN pip install --upgrade pip

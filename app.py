@@ -1,18 +1,17 @@
-import requests
-import streamlit as st
+from flask import Flask, request, jsonify
+import pickle
 
-sepal_length = st.number_input("Sepal length")
-sepal_width = st.number_input("Sepal width")
-petal_length = st.number_input("Petal length")
-petal_width = st.number_input("Petal width")
+app = Flask(__name__)
 
-if st.button("Predict"):
-    url = "http://127.0.0.1:5000/predict"
-    payload = {
-        "sepal_length": sepal_length,
-        "sepal_width": sepal_width,
-        "petal_length": petal_length,
-        "petal_width": petal_width
-    }
-    response = requests.post(url, json=payload)
-    st.write("Prediction:", response.json()["prediction"])
+with open("model.pkl", "rb") as file:
+    model = pickle.load(file)
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.json
+    features = data["features"]
+    prediction = model.predict([features])
+    return jsonify({"prediction": int(prediction[0])})
+
+if __name__ == '__main__':
+    app.run(debug=True)
